@@ -1,0 +1,29 @@
+---
+- name: In-place upgrade RHEL 7 to RHEL 8
+  hosts: rhel7
+  become: true
+
+  tasks:
+    - name: Install Leapp
+      yum:
+        name: leapp
+        state: present
+
+    - name: Check for upgrade issues
+      command: leapp preupgrade
+      register: preupgrade_output
+      ignore_errors: true
+
+    - name: Show preupgrade result
+      debug:
+        var: preupgrade_output.stdout_lines
+
+    - name: Perform the upgrade (REBOOT REQUIRED)
+      command: leapp upgrade
+      when: preupgrade_output.rc == 0
+      register: upgrade_output
+      ignore_errors: true
+
+    - name: Show upgrade result
+      debug:
+        var: upgrade_output.stdout_lines
